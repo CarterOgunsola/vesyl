@@ -1,0 +1,96 @@
+async function fetchData(data) {
+  const response = await fetch('https://api.test.vesyl.com/rate_calculator', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  return await response.json();
+}
+
+async function displayRates(rates) {
+  const resultHTML = rates.map(rate => `
+    <div class="rate_result-card">
+      <div class="rate_results-header">
+        <div class="text-size-meta is--result--carrier">${rate.carrier}</div>
+        <div class="heading-style-h4 is--result-service">${rate.service}</div>
+      </div>
+      <div class="rate_results-pg">
+        <div class="text-size-small font-messina">Time in Transit:</div>
+        <div class="text-size-small font-messina is--result--time">${rate.time_in_transit}</div>
+      </div>
+      <div class="rate_results-intro">
+        <div class="text-size-meta">Vesyl Rate:</div>
+        <div class="rates_results-retail-wrap">
+          <div class="text-size-regular">Retail Rate:</div>
+          <div class="text-size-regular is--results-retail">$${rate.retail_rate}</div>
+        </div>
+      </div>
+      <div class="rate_results-data">
+        <div class="heading-style-h1 is--results-rate">$${rate.rate}</div>
+        <div class="rate_result-savings">${rate.savings}</div>
+      </div>
+      <a href="#" class="is-rate-btn w-inline-block">
+        <div class="overflow-hidden pos-rel">
+          <div class="nav_link-child-rel">
+            <div class="heading-style-h5">Ship Now</div>
+          </div>
+          <div class="nav_link-child-ab">
+            <a href="https://app.vesyl.com/login" target="_blank" class="heading-style-h5">Ship Now</a>
+          </div>
+        </div>
+      </a>
+    </div>
+  `).join('');
+  document.getElementById('rate-results').innerHTML = resultHTML;
+
+  const rateSection = document.querySelector('.rates_results-section');
+  rateSection.style.display = 'block';
+  rateSection.classList.add('is--open');
+
+  document.querySelector('.rates_results-section-main').classList.add('is--open');
+  document.querySelector('.rates_results-modal-overlay').classList.add('is--open');
+
+  document.querySelector('.lenis-trigger-stop').click();
+}
+
+document.getElementById('wf-form-shipping-calculator-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const destination = document.getElementById('destination').value.trim();
+  const originZip = document.getElementById('origin-zip').value.trim();
+  const weight = document.getElementById('weight').value.trim() || null;
+  const packageType = document.getElementById('package-type').value.trim();
+  const length = document.getElementById('length').value.trim() || null;
+  const width = document.getElementById('width').value.trim() || null;
+  const height = document.getElementById('height').value.trim() || null;
+  
+  const data = {
+    destination,
+    origin_zip: originZip,
+    weight,
+    packageType,
+    length,
+    width,
+    height,
+    predefined_package: null
+  };
+
+  try {
+    const rates = await fetchData(data);
+    await displayRates(rates);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+});
+
+document.querySelector('.rates_result-close-button').addEventListener('click', function() {
+  const rateSection = document.querySelector('.rates_results-section');
+  rateSection.style.display = 'none';
+  rateSection.classList.remove('is--open');
+  
+  document.querySelector('.rates_results-section-main').classList.remove('is--open');
+  document.querySelector('.rates_results-modal-overlay').classList.remove('is--open');
+
+  document.querySelector('.lenis-trigger-start').click();
+});
