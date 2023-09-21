@@ -10,7 +10,12 @@ async function fetchData(data) {
 }
 
 async function displayRates(rates) {
-  const resultHTML = rates.map(rate => `
+  const resultHTML = rates.map(rate => {
+    const isOSM = rate.carrier.includes('OSM') || rate.carrier.includes('OSM Worldwide');
+    const buttonText = isOSM ? 'Contact Us' : 'Ship Now';
+    const buttonLink = isOSM ? '/contact' : 'https://app.vesyl.com/login';
+
+    return `
     <div class="rate_result-card">
       <div class="rate_results-header">
         <div class="text-size-meta is--result--carrier">${rate.carrier}</div>
@@ -31,18 +36,19 @@ async function displayRates(rates) {
         <div class="heading-style-h1 is--results-rate">$${rate.rate}</div>
         <div class="rate_result-savings">${rate.savings}</div>
       </div>
-      <a href="#" class="is-rate-btn w-inline-block">
+      <a href="${buttonLink}" target="_blank" class="is-rate-btn w-inline-block">
         <div class="overflow-hidden pos-rel">
           <div class="nav_link-child-rel">
-            <div class="heading-style-h5">Ship Now</div>
+            <div class="heading-style-h5">${buttonText}</div>
           </div>
           <div class="nav_link-child-ab">
-            <a href="https://app.vesyl.com/login" target="_blank" class="heading-style-h5">Ship Now</a>
+            <div class="heading-style-h5">${buttonText}</div>
           </div>
         </div>
       </a>
     </div>
-  `).join('');
+  `;
+  }).join('');
   document.getElementById('rate-results').innerHTML = resultHTML;
 
   const rateSection = document.querySelector('.rates_results-section');
