@@ -1,3 +1,13 @@
+function toggleGif(show) {
+  const button = document.querySelector('.rates_calc-submit-btn-1.heading-style-h5');
+  if (show) {
+    button.style.backgroundImage = "url('https://uploads-ssl.webflow.com/64dbe71cadc8440d1898610a/650e10bb9840def8de9078e7_VAyR.gif')";
+  } else {
+    button.style.backgroundImage = 'none';
+  }
+}
+
+
 async function fetchData(data) {
   const response = await fetch('https://api.test.vesyl.com/rate_calculator', {
     method: 'POST',
@@ -14,12 +24,21 @@ async function displayRates(rates) {
     const isOSM = rate.carrier.includes('OSM') || rate.carrier.includes('OSM Worldwide');
     const buttonText = isOSM ? 'Contact Us' : 'Ship Now';
     const buttonLink = isOSM ? '/contact' : 'https://app.vesyl.com/login';
+    const rateClass = isOSM ? 'heading-style-h2' : 'heading-style-h1';
+    const rateText = isOSM ? 'Contact Us' : `$${rate.rate}`;
+    const highlightVisibility = rate.highlight ? '' : 'style="display:none;"';
+    const retailRate = rate.retail_rate === null ? "N/A" : `$${rate.retail_rate}`;
 
     return `
     <div class="rate_result-card">
       <div class="rate_results-header">
         <div class="text-size-meta is--result--carrier">${rate.carrier}</div>
         <div class="heading-style-h4 is--result-service">${rate.service}</div>
+        <div class="rates_highlight" ${highlightVisibility}>
+        <p class="text-size-meta">
+          ${rate.highlight || ''}
+        </p>
+      </div>
       </div>
       <div class="rate_results-pg">
         <div class="text-size-small font-messina">Time in Transit:</div>
@@ -29,11 +48,11 @@ async function displayRates(rates) {
         <div class="text-size-meta">Vesyl Rate:</div>
         <div class="rates_results-retail-wrap">
           <div class="text-size-regular">Retail Rate:</div>
-          <div class="text-size-regular is--results-retail">$${rate.retail_rate}</div>
+          <div class="text-size-regular is--results-retail">${retailRate}</div>
         </div>
       </div>
       <div class="rate_results-data">
-        <div class="heading-style-h1 is--results-rate">$${rate.rate}</div>
+        <div class="${rateClass} is--results-rate">${rateText}</div>
         <div class="rate_result-savings">${rate.savings}</div>
       </div>
       <a href="${buttonLink}" target="_blank" class="is-rate-btn w-inline-block">
@@ -63,6 +82,8 @@ async function displayRates(rates) {
 
 document.getElementById('wf-form-shipping-calculator-form').addEventListener('submit', async function(e) {
   e.preventDefault();
+  toggleGif(true);
+
   const destination = document.getElementById('destination').value.trim();
   const originZip = document.getElementById('origin-zip').value.trim();
   const weight = document.getElementById('weight').value.trim() || null;
@@ -85,8 +106,12 @@ document.getElementById('wf-form-shipping-calculator-form').addEventListener('su
   try {
     const rates = await fetchData(data);
     await displayRates(rates);
+    // to hide the GIF when the request is successful
+    toggleGif(false);
   } catch (error) {
     console.error('Error:', error);
+    // Insert this line to hide the GIF when an error occurs
+    toggleGif(false);
   }
 });
 
